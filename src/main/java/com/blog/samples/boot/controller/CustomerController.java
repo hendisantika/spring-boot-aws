@@ -1,21 +1,5 @@
 package com.blog.samples.boot.controller;
 
-import java.util.Date;
-import java.util.List;
-
-import javax.servlet.http.HttpServletResponse;
-
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
-import org.springframework.http.HttpStatus;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.multipart.MultipartFile;
-
 import com.blog.samples.boot.exception.CustomerNotFoundException;
 import com.blog.samples.boot.exception.InvalidCustomerRequestException;
 import com.blog.samples.boot.model.Address;
@@ -23,6 +7,16 @@ import com.blog.samples.boot.model.Customer;
 import com.blog.samples.boot.model.CustomerImage;
 import com.blog.samples.boot.repository.CustomerRepository;
 import com.blog.samples.boot.service.FileArchiveService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.format.annotation.DateTimeFormat;
+import org.springframework.http.HttpStatus;
+import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
+
+import javax.servlet.http.HttpServletResponse;
+import java.util.Date;
+import java.util.List;
+import java.util.Optional;
 
 /**
  * Customer Controller exposes a series of RESTful endpoints
@@ -64,18 +58,19 @@ public class CustomerController {
 	 */
 	@RequestMapping(value = "/customers/{customerId}", method = RequestMethod.GET)
 	public Customer getCustomer(@PathVariable("customerId") Long customerId) {
-		
+
 		/* validate customer Id parameter */
-		if (null==customerId) {
+		if (null == customerId) {
 			throw new InvalidCustomerRequestException();
 		}
-		
-		Customer customer = customerRepository.findOne(customerId);
-		
-		if(null==customer){
+
+		Optional<Customer> customerOpt = customerRepository.findById(customerId);
+		Customer customer = customerOpt.get();
+
+		if (null == customer) {
 			throw new CustomerNotFoundException();
 		}
-		
+
 		return customer;
 	}
 	
@@ -98,12 +93,13 @@ public class CustomerController {
 	@RequestMapping(value = "/customers/{customerId}", method = RequestMethod.DELETE)
 	public void removeCustomer(@PathVariable("customerId") Long customerId, HttpServletResponse httpResponse) {
 
-		if(customerRepository.exists(customerId)){
-			Customer customer = customerRepository.findOne(customerId);
+		if (customerRepository.findById(customerId).isPresent()) {
+			Optional<Customer> customerOpt = customerRepository.findById(customerId);
+			Customer customer = customerOpt.get();
 			fileArchiveService.deleteImageFromS3(customer.getCustomerImage());
-			customerRepository.delete(customer);	
+			customerRepository.delete(customer);
 		}
-		
+
 		httpResponse.setStatus(HttpStatus.NO_CONTENT.value());
 	}
 

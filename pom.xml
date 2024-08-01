@@ -65,7 +65,7 @@
     <properties>
         <java.version>21</java.version>
         <jackson.mapper.version>1.5.6</jackson.mapper.version>
-         <spring-cloud-aws-version>1.0.4.RELEASE</spring-cloud-aws-version>
+         <spring-cloud-aws-version>2.2.6.RELEASE</spring-cloud-aws-version>
     </properties>
     <build>
         <plugins>
